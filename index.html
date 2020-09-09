@@ -303,7 +303,7 @@
             <h1 id="SVD-and-PCA"><a href="#SVD-and-PCA" class="headerlink" title="SVD and PCA"></a>SVD and PCA</h1><h2 id="SVD"><a href="#SVD" class="headerlink" title="SVD"></a>SVD</h2><p>SVD(singular value decomposition,奇异值分解)是一种非常实用的矩阵分解方式，在各种地方频繁遇到SVD和相关的算法却搞不清它到底是什么原理后，我决定深入了解一下。</p>
 <h3 id="SVD的几何意义"><a href="#SVD的几何意义" class="headerlink" title="SVD的几何意义"></a>SVD的几何意义</h3><p>学过线性代数的人都知道（也可能不知道），矩阵在几何上可以看作对空间的线性变换，比如矩阵$M=\begin{bmatrix}<br>1 &amp; 0 \<br>2 &amp; 3<br>\end{bmatrix}$对空间所作的线性变换如下图所示：<br><img src="1.jpg" alt="avatar"><br>可以看出，M将原空间的基向量i，j变换为新的基向量（分别为[1,2],[3,0])，对原空间中任意向量，假设为向量v=[1,1],在M转换后Mv=[1,5],也正是以新的基向量$i^{‘},j^{‘}$表示的[1,1]向量。<br>但是这样描述一个矩阵对空间的变换也太麻烦太抽象了，有没有简单一点的描述方法，比如说用直观的旋转、拉伸这样的方法来描述呢？答案是：有，辣就是，SVD，锵锵~！<br>为了能够使用这样的直观描述，我们必须找到一组空间的在经受M变换后仍然是正交的正交基向量：<br><img src="2.jpg" alt="avatar"><br>好消息是，数学家告诉我们对于任何一个矩阵M，这样的正交基向量都存在。这个结论此处不予证明，请拿出对数学的信仰。（开玩笑啦，如感兴趣可以搜索SVD证明。）<br>现在假设我们找到了这样的一组基向量$[v_1,v_2]$(此处以二维空间为例)，经过矩阵M变换后成为$[Mv_1,Mv_2]$。根据前面所说的性质可知，$[Mv_1,Mv_2]$仍然是正交向量。<br><img src="3.png" alt="avatar"></p>
 <p>我们将$[Mv_1,Mv_2]$方向的单位向量表示为$[u_1,u_2]$,那么$[Mv_1,Mv_2]$可以表示为$[\sigma_1 u_1,\sigma_1 u_2]$。<br><img src="4.png" alt="avatar"><br>请注意，因为$[v_1,v_2]$和$[u_1,u_2]$都是空间的正交基，因此它们所代表的线性变换为单纯的旋转变换，并且其逆矩阵等于其转置矩阵。（线性代数基础，如果不记得的话就继续靠对数学的信仰吧~）<br>此时对于任意一个向量x，我们可以将其表示为如下形式：<br>$$x =  [v_1,v_2][v_1^T,v_2^T]x$$<br>（$[v_1,v_2][v_1^T,v_2^T]$两者相乘的结果是相互抵消，等于标准正交基 $I$，也就是等于没变）<br>对x做矩阵M变换：<br>$$<br>\begin{aligned}<br>Mx &amp;= M[v_1,v_2][v_1^T,v_2^T]x \<br>   &amp;= [\sigma_1 u_1,\sigma_1 u_2][v_1^T,v_2^T]x \<br>   &amp;= [u_1,u_2]\begin{bmatrix}<br>\sigma_1 &amp; 0 \<br>0 &amp; \sigma_1<br>\end{bmatrix}[v_1^T,v_2^T]x<br>\end{aligned}<br>$$<br>将上式整理为矩阵形式并消去x，则得到：<br>$$M = U\Sigma V^T$$</p>
-<p>锵锵<del>！我们得到了矩阵的奇异值分解\</del>！<br>有人可能会说了，这把一个矩阵分解成三个矩阵难道不是更复杂了吗？但是U和$V^T$都是正交矩阵，对应于旋转操作，而$\Sigma$是对角矩阵，对应于拉伸操作，那么经过这样的分解后，任意一个矩阵都可以分解为旋转-拉伸-旋转三次简单操作的组合，在几何理解上更加直观。<br><img src="5.png" alt="avatar"></p>
+<p>锵锵<del>！我们得到了矩阵的奇异值分解</del>！<br>有人可能会说了，这把一个矩阵分解成三个矩阵难道不是更复杂了吗？但是U和$V^T$都是正交矩阵，对应于旋转操作，而$\Sigma$是对角矩阵，对应于拉伸操作，那么经过这样的分解后，任意一个矩阵都可以分解为旋转-拉伸-旋转三次简单操作的组合，在几何理解上更加直观。<br><img src="5.png" alt="avatar"></p>
 <h3 id="SVD的计算"><a href="#SVD的计算" class="headerlink" title="SVD的计算"></a>SVD的计算</h3><p>接下来我们来看一看怎样计算得到这三个矩阵,首先把$MM^T$相乘，看看会发生什么：<br>$$<br>\begin{aligned}<br>MM^{T} &amp;= U\Sigma V^T[U\Sigma V^T]^T \<br>   &amp;= U\Sigma V^TV\Sigma U^T \<br>   &amp;= U\Sigma ^2 U^T<br>\end{aligned}<br>$$<br>$$<br>\begin{aligned}<br>M^{T}M &amp;= [U\Sigma V^T]^TU\Sigma V^T \<br>   &amp;= V\Sigma U^TU\Sigma V^T \<br>   &amp;= V\Sigma ^2 V^T<br>\end{aligned}<br>$$<br>是不是有点眼熟？没错~！这就是特征值分解，那么怎样计算$U,V,和\Sigma$也就很清楚了：</p>
 <ol>
 <li>计算 $MM^{T}$ 和 $M^{T}M$；</li>
@@ -611,6 +611,28 @@
   
 
   
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
 
   
 
